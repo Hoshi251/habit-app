@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthUser } from '@/lib/auth'
 import { format, subDays, eachDayOfInterval, startOfMonth, endOfMonth, getDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { Flame, Trophy, TrendingUp, CalendarCheck } from 'lucide-react'
@@ -56,8 +57,7 @@ function calcStreak(logDates: string[], today: string): { current: number; best:
 }
 
 export default async function StatsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [user, supabase] = await Promise.all([getAuthUser(), createClient()])
   const today = format(new Date(), 'yyyy-MM-dd')
 
   // 過去30日のログを取得

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { format } from 'date-fns'
 import { applyDecay, determineCharacterType, getCharacterStage } from '@/lib/character'
@@ -14,8 +15,7 @@ const PARAM_LABELS: Record<string, string> = {
 }
 
 export default async function CharacterPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [user, supabase] = await Promise.all([getAuthUser(), createClient()])
   if (!user) redirect('/login')
 
   const today = format(new Date(), 'yyyy-MM-dd')

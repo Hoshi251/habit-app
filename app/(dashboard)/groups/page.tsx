@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthUser } from '@/lib/auth'
 import { Users } from 'lucide-react'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
@@ -6,8 +7,7 @@ import CreateGroupModal from '@/components/CreateGroupModal'
 import JoinGroupModal from '@/components/JoinGroupModal'
 
 export default async function GroupsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [user, supabase] = await Promise.all([getAuthUser(), createClient()])
 
   const { data: memberships } = await supabase
     .from('group_members')

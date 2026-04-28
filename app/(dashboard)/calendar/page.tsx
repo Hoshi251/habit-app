@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthUser } from '@/lib/auth'
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns'
 import MonthNavigator from '@/components/MonthNavigator'
 import CalendarGrid from '@/components/CalendarGrid'
@@ -12,8 +13,7 @@ export default async function CalendarPage({ searchParams }: Props) {
   const { month: monthParam } = await searchParams
   const month = monthParam ?? format(new Date(), 'yyyy-MM')
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [user, supabase] = await Promise.all([getAuthUser(), createClient()])
 
   const monthStart = format(startOfMonth(parseISO(month + '-01')), 'yyyy-MM-dd')
   const monthEnd = format(endOfMonth(parseISO(month + '-01')), 'yyyy-MM-dd')

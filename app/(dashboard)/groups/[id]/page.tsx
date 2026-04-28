@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthUser } from '@/lib/auth'
 import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
@@ -15,8 +16,7 @@ type Props = {
 
 export default async function GroupDetailPage({ params }: Props) {
   const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [user, supabase] = await Promise.all([getAuthUser(), createClient()])
   const today = format(new Date(), 'yyyy-MM-dd')
   const todayLabel = format(new Date(), 'M月d日（E）', { locale: ja })
 

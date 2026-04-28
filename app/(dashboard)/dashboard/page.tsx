@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthUser } from '@/lib/auth'
 import { signOut } from '@/app/actions/auth'
 import { CheckCircle, LogOut } from 'lucide-react'
 import { format } from 'date-fns'
@@ -29,24 +30,16 @@ function calcStreak(logs: { logged_at: string }[]): number {
 }
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [user, supabase] = await Promise.all([getAuthUser(), createClient()])
   const today = format(new Date(), 'yyyy-MM-dd')
   const todayLabel = format(new Date(), 'M月d日（E）', { locale: ja })
 
-  const [{ data: profile }, { data: habits }] = await Promise.all([
+  const [{ data: profile }, { data: habits }, { data: todayLogs }, { data: allLogs }] = await Promise.all([
     supabase.from('profiles').select('username').eq('id', user!.id).single(),
     supabase.from('habits').select('id, title, icon, color').eq('user_id', user!.id).order('created_at'),
+    supabase.from('habit_logs').select('habit_id').eq('user_id', user!.id).eq('logged_at', today),
+    supabase.from('habit_logs').select('habit_id, logged_at').eq('user_id', user!.id),
   ])
-
-  // 今日のログと全ログを一括取得
-  const habitIds = habits?.map((h) => h.id) ?? []
-  const { data: todayLogs } = habitIds.length
-    ? await supabase.from('habit_logs').select('habit_id').eq('user_id', user!.id).eq('logged_at', today).in('habit_id', habitIds)
-    : { data: [] }
-  const { data: allLogs } = habitIds.length
-    ? await supabase.from('habit_logs').select('habit_id, logged_at').eq('user_id', user!.id).in('habit_id', habitIds)
-    : { data: [] }
 
   const doneSet = new Set(todayLogs?.map((l) => l.habit_id) ?? [])
   const doneCount = doneSet.size
